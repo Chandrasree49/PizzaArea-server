@@ -1,8 +1,11 @@
+
 import express from 'express';
 import Stripe from 'stripe';
+import 'dotenv/config'; 
 import { ObjectId } from 'mongodb';
 import { getDB } from '../config/db.js';
 import { verifyToken, verifyRole } from '../middlewares/authMiddleware.js';
+
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
