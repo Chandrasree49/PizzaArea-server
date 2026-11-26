@@ -1,7 +1,7 @@
-import express from 'express';
-import { ObjectId } from 'mongodb';
-import { getDB } from '../config/db.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import express from "express";
+import { ObjectId } from "mongodb";
+import { getDB } from "../config/db.js";
+import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -10,7 +10,6 @@ router.put("/", verifyToken, async (req, res) => {
     const { name, image, businessName, role, subscriptionPlan, isBlocked } =
       req.body;
 
-    
     if (role || subscriptionPlan || isBlocked !== undefined) {
       return res.status(403).json({
         success: false,
