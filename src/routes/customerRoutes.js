@@ -169,6 +169,4 @@ router.patch('/orders/:id/cancel', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to cancel order' });
   }
 });
-
-module.exports = router;
 export default router;
