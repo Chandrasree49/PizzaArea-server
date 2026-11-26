@@ -214,6 +214,4 @@ router.post(
     return res.json({ received: true });
   }
 );
-
-module.exports = router;
 export default router;
