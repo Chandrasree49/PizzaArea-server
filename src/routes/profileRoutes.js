@@ -66,6 +66,4 @@ router.put("/", verifyToken, async (req, res) => {
       .json({ success: false, message: "Failed to update profile" });
   }
 });
-
-module.exports = router;
 export default router;

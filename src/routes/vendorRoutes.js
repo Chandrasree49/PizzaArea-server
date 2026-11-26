@@ -347,6 +347,4 @@ router.patch("/orders/:id/status", async (req, res) => {
       .json({ success: false, message: "Failed to update order status" });
   }
 });
-
-module.exports = router;
 export default router;
