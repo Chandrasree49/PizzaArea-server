@@ -207,6 +207,4 @@ router.post('/google', async (req, res) => {
 router.get('/me', verifyToken, async (req, res) => {
   return res.json({ success: true, user: req.user });
 });
-
-module.exports = router;
 export default router;
