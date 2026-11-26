@@ -7,14 +7,19 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const { search, category, location, sort, featured } = req.query;
+    const { search, category, location, sort, featured, status } = req.query;
     const db = getDB();
 
-    
-    const query = {
-      status: "approved",
-    };
+    const query = {};
 
+
+    if (status === "all") {
+    
+    } else if (status) {
+      query.status = status;
+    } else {
+      query.status = "approved";
+    }
   
     if (search && search.trim() !== "") {
       query.$or = [

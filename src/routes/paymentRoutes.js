@@ -1,4 +1,3 @@
-
 import express from 'express';
 import Stripe from 'stripe';
 import 'dotenv/config'; 
@@ -6,11 +5,8 @@ import { ObjectId } from 'mongodb';
 import { getDB } from '../config/db.js';
 import { verifyToken, verifyRole } from '../middlewares/authMiddleware.js';
 
-
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-
 
 router.post(
   "/create-checkout-session",
@@ -22,7 +18,6 @@ router.post(
       const vendor = req.user;
 
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
         mode: "payment",
         customer_email: vendor.email,
         client_reference_id: vendor.id,
@@ -39,12 +34,12 @@ router.post(
               product_data: {
                 name: "PizzaArea Vendor Premium Membership",
                 description:
-                  "Unlimited menu items, Featured placement on homepage, and Premium badge.",
+                  "Unlimited menu items, Featured placement on homepage, and Verified PRO badge.",
                 images: [
                   "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80",
                 ],
               },
-              unit_amount: 1999, 
+              unit_amount: 1999, // $19.99
             },
             quantity: 1,
           },
@@ -56,7 +51,7 @@ router.post(
       return res.json({
         success: true,
         id: session.id,
-        url: session.url,
+        url: session.url, 
       });
     } catch (error) {
       console.error("Stripe session creation error:", error);
@@ -67,6 +62,7 @@ router.post(
     }
   }
 );
+
 
 router.get("/verify-session", verifyToken, async (req, res) => {
   try {
@@ -84,13 +80,11 @@ router.get("/verify-session", verifyToken, async (req, res) => {
         session.metadata?.vendorId || session.client_reference_id;
       const db = getDB();
 
-    
       const existingTx = await db
         .collection("transactions")
         .findOne({ stripeSessionId: session.id });
 
       if (!existingTx && vendorId) {
-       
         const newTx = {
           vendorId,
           vendorEmail: session.metadata?.vendorEmail || session.customer_email,
@@ -104,21 +98,30 @@ router.get("/verify-session", verifyToken, async (req, res) => {
         };
         await db.collection("transactions").insertOne(newTx);
 
-  
-        await db.collection("users").updateOne(
-          { _id: new ObjectId(vendorId) },
-          {
-            $set: {
-              subscriptionPlan: "premium",
-              subscriptionExpiresAt: new Date(
-                Date.now() + 30 * 24 * 60 * 60 * 1000
-              ), // 30 days
-              updatedAt: new Date(),
-            },
-          }
-        );
+        
+        const userQuery = {
+          $or: [
+            { _id: vendorId },
+            ...(ObjectId.isValid(vendorId) ? [{ _id: new ObjectId(vendorId) }] : [])
+          ]
+        };
 
-     
+        await db.collection("user").updateOne(userQuery, {
+          $set: {
+            subscriptionPlan: "premium",
+            subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            updatedAt: new Date(),
+          },
+        });
+
+        await db.collection("users").updateOne(userQuery, {
+          $set: {
+            subscriptionPlan: "premium",
+            subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            updatedAt: new Date(),
+          },
+        });
+
         await db
           .collection("menuItems")
           .updateMany({ vendorId }, { $set: { isFeatured: true } });
@@ -144,6 +147,7 @@ router.get("/verify-session", verifyToken, async (req, res) => {
   }
 });
 
+
 router.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -152,12 +156,10 @@ router.post(
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     let event;
-
     try {
       if (webhookSecret && sig) {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
       } else {
-  
         event = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
       }
     } catch (err) {
@@ -190,24 +192,32 @@ router.post(
             createdAt: new Date(),
           });
 
-          await db.collection("users").updateOne(
-            { _id: new ObjectId(vendorId) },
-            {
-              $set: {
-                subscriptionPlan: "premium",
-                subscriptionExpiresAt: new Date(
-                  Date.now() + 30 * 24 * 60 * 60 * 1000
-                ),
-                updatedAt: new Date(),
-              },
-            }
-          );
+          const userQuery = {
+            $or: [
+              { _id: vendorId },
+              ...(ObjectId.isValid(vendorId) ? [{ _id: new ObjectId(vendorId) }] : [])
+            ]
+          };
+
+          await db.collection("user").updateOne(userQuery, {
+            $set: {
+              subscriptionPlan: "premium",
+              subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              updatedAt: new Date(),
+            },
+          });
+
+          await db.collection("users").updateOne(userQuery, {
+            $set: {
+              subscriptionPlan: "premium",
+              subscriptionExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              updatedAt: new Date(),
+            },
+          });
 
           await db
             .collection("menuItems")
             .updateMany({ vendorId }, { $set: { isFeatured: true } });
-
-          console.log(`🎉 Webhook: Upgraded vendor ${vendorId} to Premium!`);
         }
       } catch (dbErr) {
         console.error("Webhook DB error:", dbErr);
@@ -217,4 +227,5 @@ router.post(
     return res.json({ received: true });
   }
 );
+
 export default router;
