@@ -39,7 +39,7 @@ router.post(
                   "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80",
                 ],
               },
-              unit_amount: 1999, // $19.99
+              unit_amount: 1999,
             },
             quantity: 1,
           },

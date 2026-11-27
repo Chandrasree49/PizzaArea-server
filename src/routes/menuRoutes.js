@@ -4,7 +4,6 @@ import { getDB } from "../config/db.js";
 
 const router = express.Router();
 
-
 router.get("/", async (req, res) => {
   try {
     const { search, category, location, sort, featured, status } = req.query;
@@ -12,15 +11,13 @@ router.get("/", async (req, res) => {
 
     const query = {};
 
-
     if (status === "all") {
-    
     } else if (status) {
       query.status = status;
     } else {
       query.status = "approved";
     }
-  
+
     if (search && search.trim() !== "") {
       query.$or = [
         { itemName: { $regex: search.trim(), $options: "i" } },
@@ -29,22 +26,18 @@ router.get("/", async (req, res) => {
       ];
     }
 
-   
     if (category && category !== "All" && category.trim() !== "") {
       query.category = { $regex: new RegExp(`^${category.trim()}$`, "i") };
     }
 
-   
     if (location && location !== "All" && location.trim() !== "") {
       query.location = { $regex: location.trim(), $options: "i" };
     }
 
-   
     if (featured === "true") {
       query.isFeatured = true;
     }
 
-   
     let sortOptions = { createdAt: -1 };
     if (sort === "price_asc") {
       sortOptions = { price: 1 };
@@ -73,7 +66,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 router.get("/meta/filters", async (req, res) => {
   try {
     const db = getDB();
@@ -95,7 +87,6 @@ router.get("/meta/filters", async (req, res) => {
       .json({ success: false, message: "Failed to fetch filter metadata" });
   }
 });
-
 
 router.get("/:id", async (req, res) => {
   try {
@@ -120,7 +111,7 @@ router.get("/:id", async (req, res) => {
     let vendorInfo = null;
     if (item.vendorId && ObjectId.isValid(item.vendorId)) {
       vendorInfo = await db
-        .collection("users")
+        .collection("user")
         .findOne(
           { _id: new ObjectId(item.vendorId) },
           { projection: { password: 0 } }

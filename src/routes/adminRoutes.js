@@ -12,12 +12,12 @@ router.get("/stats", async (req, res) => {
   try {
     const db = getDB();
 
-    const totalUsers = await db.collection("users").countDocuments();
+    const totalUsers = await db.collection("user").countDocuments();
     const totalVendors = await db
-      .collection("users")
+      .collection("user")
       .countDocuments({ role: "vendor" });
     const totalCustomers = await db
-      .collection("users")
+      .collection("user")
       .countDocuments({ role: "customer" });
     const totalMenuItems = await db.collection("menuItems").countDocuments();
     const pendingMenuItems = await db
@@ -59,7 +59,7 @@ router.get("/stats", async (req, res) => {
 });
 
 
-router.get("/users", async (req, res) => {
+router.get("/user", async (req, res) => {
   try {
     const { search, role } = req.query;
     const db = getDB();
@@ -78,7 +78,7 @@ router.get("/users", async (req, res) => {
     }
 
     const users = await db
-      .collection("users")
+      .collection("user")
       .find(query, { projection: { password: 0 } })
       .sort({ createdAt: -1 })
       .toArray();
@@ -121,7 +121,7 @@ router.patch("/users/:id/block", async (req, res) => {
 
     const db = getDB();
     await db
-      .collection("users")
+      .collection("user")
       .updateOne(
         { _id: new ObjectId(id) },
         { $set: { isBlocked, updatedAt: new Date() } }

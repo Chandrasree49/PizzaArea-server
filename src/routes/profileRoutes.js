@@ -36,11 +36,11 @@ router.put("/", verifyToken, async (req, res) => {
     }
 
     await db
-      .collection("users")
+      .collection("user")
       .updateOne({ _id: new ObjectId(req.user.id) }, { $set: updateData });
 
     const updatedUser = await db
-      .collection("users")
+      .collection("user")
       .findOne(
         { _id: new ObjectId(req.user.id) },
         { projection: { password: 0 } }
